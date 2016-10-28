@@ -1,0 +1,50 @@
+<?php
+
+namespace SundaySim\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+use SundaySim\Http\Requests;
+use SundaySim\Http\Controllers\Controller;
+
+use SundaySim\Page;
+
+//https://github.com/tutsplus/build-a-cms-with-laravel
+
+class PageController extends Controller
+{
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show(Page $page, array $parameters)
+    {
+        $this->prepareTemplate($page, $parameters);
+
+        return view('page', compact('page'));
+    }
+
+    protected function prepareTemplate($page, array $parameters)
+    {
+        $templates = config('cms.templates');
+
+        if(! $page->template || ! isset($templates[$page->template])) {
+            return;
+        }
+
+        $template = app($templates[$page->template]);
+
+        $view = sprintf('templates.%s', $template->getView());
+
+        if (! view()->exists($view)) {
+            return;
+        }
+
+        $template->prepare($view = view($view), $parameters);
+
+        $page->view = $view;
+    }
+
+}
